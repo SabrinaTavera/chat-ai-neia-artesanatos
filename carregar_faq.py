@@ -1,18 +1,17 @@
 import chromadb
-from chromadb.utils import embedding_functions
 from faq_neia import faq
-
-# Modelo em português
-embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="neuralmind/bert-base-portuguese-cased"
-)
 
 # Cria banco de dados persistente (salva no disco)
 client = chromadb.PersistentClient(path="./banco_neia")
-colecao = client.get_or_create_collection(
-    name="faq_neia",
-    embedding_function=embedding_fn
-)
+
+# Apaga coleção antiga e cria nova
+try:
+    client.delete_collection("faq_neia")
+    print("🗑️ Coleção antiga removida!")
+except:
+    pass
+
+colecao = client.create_collection(name="faq_neia")
 
 # Carrega o FAQ
 documentos = [item["resposta"] for item in faq]
