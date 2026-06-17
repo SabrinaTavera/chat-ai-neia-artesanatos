@@ -6,9 +6,11 @@ import anthropic
 import chromadb
 from chromadb.utils import embedding_functions
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # ── Configurações ──────────────────────────────────────────
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "sua-api-key-aqui")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 MODELO = "claude-sonnet-4-6"
 
 SYSTEM_PROMPT = """Você é a assistente virtual da Néia Artesanatos, 
@@ -34,7 +36,8 @@ cliente_anthropic = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 # ── Inicializa ChromaDB ────────────────────────────────────
 print("📚 Carregando base de conhecimento...")
 embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="neuralmind/bert-base-portuguese-cased"
+    # model_name="neuralmind/bert-base-portuguese-cased"
+    model_name="all-MiniLM-L6-v2"
 )
 client_chroma = chromadb.PersistentClient(path="./banco_neia")
 colecao = client_chroma.get_or_create_collection(
