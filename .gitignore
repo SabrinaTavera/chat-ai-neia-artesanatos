@@ -1,0 +1,8 @@
+echo "banco_neia/
+__pycache__/
+*.pyc
+*.wav
+*.mp3
+.env
+gravacao.wav
+resposta.mp3" > .gitignore

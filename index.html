@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Néia Artesanatos - Assistente Virtual</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .hero {
+      text-align: center;
+      color: #a0527a;
+    }
+
+    .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { color: #888; font-size: 1rem; }
+
+    /* ── Widget flutuante ── */
+    #widget {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+    }
+
+    #btn-abrir {
+      background: #c0678a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 1.6rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    #btn-abrir:hover { transform: scale(1.1); }
+
+    #chat-box {
+      display: none;
+      flex-direction: column;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      width: 340px;
+      height: 480px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    #chat-box.aberto { display: flex; }
+
+    .chat-header {
+      background: #c0678a;
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-header .avatar { font-size: 1.4rem; }
+    .chat-header .info h3 { font-size: 0.95rem; }
+    .chat-header .info p { font-size: 0.75rem; opacity: 0.85; }
+
+    .chat-mensagens {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mensagem {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .mensagem.bot {
+      background: #f5e6ee;
+      color: #333;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .mensagem.usuario {
+      background: #c0678a;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .mensagem.digitando {
+      background: #f5e6ee;
+      color: #999;
+      align-self: flex-start;
+      font-style: italic;
+    }
+
+    .chat-input {
+      padding: 12px;
+      border-top: 1px solid #f0e0e8;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chat-input input {
+      flex: 1;
+      border: 1px solid #e0c8d4;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .chat-input input:focus { border-color: #c0678a; }
+
+    .chat-input button {
+      background: #c0678a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .chat-input button:hover { background: #a0527a; }
+    .chat-input button:disabled { background: #ccc; cursor: not-allowed; }
+
+    #btn-mic {
+      background: #f5e6ee;
+      color: #c0678a;
+      font-size: 1rem;
+    }
+
+    #btn-mic:hover { background: #e8d0dc; }
+
+    #btn-mic.gravando {
+      background: #e74c3c;
+      color: white;
+      animation: pulsar 1s infinite;
+    }
+
+    @keyframes pulsar {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .status-mic {
+      font-size: 0.75rem;
+      color: #e74c3c;
+      text-align: center;
+      padding: 4px 12px;
+      display: none;
+    }
+
+    .status-mic.visivel { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>🧶 Néia Artesanatos</h1>
+    <p>Sua loja de amigurumi, fios e bordado</p>
+  </div>
+
+  <div id="widget">
+    <div id="chat-box">
+      <div class="chat-header">
+        <div class="avatar">🧶</div>
+        <div class="info">
+          <h3>Assistente Néia</h3>
+          <p>Estou aqui pra te ajudar!</p>
+        </div>
+      </div>
+
+      <div class="chat-mensagens" id="mensagens">
+        <div class="mensagem bot">
+          Olá! Sou a assistente virtual da Néia Artesanatos. 😊<br>
+          Pode digitar ou usar o 🎤 pra falar comigo!
+        </div>
+      </div>
+
+      <div class="status-mic" id="status-mic">🔴 Ouvindo... fale agora!</div>
+
+      <div class="chat-input">
+        <input
+          type="text"
+          id="input-texto"
+          placeholder="Digite ou fale sua pergunta..."
+          onkeydown="if(event.key==='Enter') enviar()"
+        />
+        <button id="btn-mic" onclick="toggleMic()" title="Falar">🎤</button>
+        <button onclick="enviar()" id="btn-enviar">➤</button>
+      </div>
+    </div>
+
+    <button id="btn-abrir" onclick="toggleChat()">🧶</button>
+  </div>
+
+  <script>
+    // ── Chat ──────────────────────────────────────────────
+    function toggleChat() {
+      const box = document.getElementById('chat-box');
+      box.classList.toggle('aberto');
+    }
+
+    function adicionarMensagem(texto, tipo) {
+      const container = document.getElementById('mensagens');
+      const msg = document.createElement('div');
+      msg.className = `mensagem ${tipo}`;
+      msg.innerHTML = texto;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+      return msg;
+    }
+
+    async function enviar() {
+      const input = document.getElementById('input-texto');
+      const btn = document.getElementById('btn-enviar');
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      adicionarMensagem(texto, 'usuario');
+      input.value = '';
+      btn.disabled = true;
+
+      const digitando = adicionarMensagem('Digitando...', 'digitando');
+
+      try {
+        const res = await fetch('/perguntar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto })
+        });
+
+        const data = await res.json();
+        digitando.remove();
+        adicionarMensagem(data.resposta, 'bot');
+      } catch (err) {
+        digitando.remove();
+        adicionarMensagem('Ops, erro ao conectar. Tente novamente!', 'bot');
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+
+    // ── Microfone (Web Speech API) ────────────────────────
+    let reconhecimento = null;
+    let gravando = false;
+
+    function inicializarMic() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert('Seu navegador não suporta reconhecimento de voz. Use o Chrome!');
+        return null;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.lang = 'pt-BR';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+
+      rec.onresult = (event) => {
+        const texto = event.results[0][0].transcript;
+        document.getElementById('input-texto').value = texto;
+        pararMic();
+        enviar();
+      };
+
+      rec.onerror = (event) => {
+        console.error('Erro no microfone:', event.error);
+        pararMic();
+        if (event.error === 'not-allowed') {
+          adicionarMensagem('⚠️ Permissão do microfone negada. Permita o acesso nas configurações do navegador.', 'bot');
+        }
+      };
+
+      rec.onend = () => {
+        if (gravando) pararMic();
+      };
+
+      return rec;
+    }
+
+    function toggleMic() {
+      if (gravando) {
+        pararMic();
+      } else {
+        iniciarMic();
+      }
+    }
+
+    function iniciarMic() {
+      reconhecimento = inicializarMic();
+      if (!reconhecimento) return;
+
+      reconhecimento.start();
+      gravando = true;
+
+      document.getElementById('btn-mic').classList.add('gravando');
+      document.getElementById('btn-mic').textContent = '⏹';
+      document.getElementById('status-mic').classList.add('visivel');
+    }
+
+    function pararMic() {
+      if (reconhecimento) reconhecimento.stop();
+      gravando = false;
+
+      document.getElementById('btn-mic').classList.remove('gravando');
+      document.getElementById('btn-mic').textContent = '🎤';
+      document.getElementById('status-mic').classList.remove('visivel');
+    }
+  </script>
+
+</body>
+</html>
