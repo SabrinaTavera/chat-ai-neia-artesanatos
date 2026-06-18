@@ -1,6 +1,5 @@
 fastapi
 uvicorn
 anthropic
-chromadb
-sentence-transformers
 requests
+python-dotenv

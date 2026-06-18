@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import anthropic
-import chromadb
-from chromadb.utils import embedding_functions
+from busca_faq import buscar_contexto
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -45,10 +44,10 @@ print("📚 Carregando base de conhecimento...")
 #     embedding_function=embedding_fn
 # )
 
-client_chroma = chromadb.PersistentClient(path="./banco_neia")
-colecao = client_chroma.get_or_create_collection(
-    name="faq_neia"
-)
+# client_chroma = chromadb.PersistentClient(path="./banco_neia")
+# colecao = client_chroma.get_or_create_collection(
+#     name="faq_neia"
+# )
 print("✅ Base de conhecimento carregada!")
 
 # ── Models ─────────────────────────────────────────────────
@@ -63,11 +62,12 @@ def index():
 @app.post("/perguntar")
 def perguntar(pergunta: Pergunta):
     # Busca contexto no ChromaDB
-    resultado = colecao.query(
-        query_texts=[pergunta.texto],
-        n_results=2
-    )
-    contexto = "\n".join(resultado["documents"][0])
+    # resultado = colecao.query(
+    #     query_texts=[pergunta.texto],
+    #     n_results=2
+    # )
+    # contexto = "\n".join(resultado["documents"][0])
+    contexto = buscar_contexto(pergunta.texto)
 
     # Monta prompt com contexto
     prompt = f"""Contexto da loja:
